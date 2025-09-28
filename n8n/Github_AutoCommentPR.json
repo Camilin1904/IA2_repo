@@ -1,0 +1,144 @@
+{
+  "name": "Github_AutoCommentPR",
+  "nodes": [
+    {
+      "parameters": {
+        "owner": {
+          "__rl": true,
+          "value": "Camilin1904",
+          "mode": "list",
+          "cachedResultName": "Camilin1904",
+          "cachedResultUrl": "https://github.com/Camilin1904"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "PR_Agent_Repo",
+          "mode": "list",
+          "cachedResultName": "PR_Agent_Repo",
+          "cachedResultUrl": "https://github.com/Camilin1904/PR_Agent_Repo"
+        },
+        "events": [
+          "pull_request"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.githubTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fc88e75f-6cd0-4743-af0e-5d84f6f7335e",
+      "name": "Github Trigger",
+      "webhookId": "7a1e43b1-868f-460d-b929-400808a602a9",
+      "credentials": {
+        "githubApi": {
+          "id": "bVTtSc4JUuVN4d0s",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "Role: You are an expert software engineer specialized in reviewing Spring Boot applications. You are reviewing a GitHub pull request.\n\nContext:\n\nRepository type: Spring Boot (Java, Maven/Gradle).\n\nCode conventions: Follow Spring Boot best practices, clean code principles, SOLID, and security guidelines.\n\nInput: You have full access to the pull request, including modified files, commit messages, and diff.\n\nTask:\nCarefully analyze the changes introduced in this pull request. Write a meaningful review comment that is:\n\nConcise but insightful – avoid generic \"good job\" comments.\n\nActionable – suggest improvements if something can be done better.\n\nContext-aware – refer to specific lines, methods, or classes when possible.\n\nBalanced – highlight positives (good practices, clean refactors, tests added) as well as potential issues (bugs, anti-patterns, missing tests, performance or security concerns).\n\nRespectful & professional – tone should be constructive, not harsh.\n\nOutput format:\nWrite a single comment in Markdown style, for example:",
+        "documentUrls": "={{ $json.body.pull_request.html_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "18b46217-1a40-4368-b3b1-18d9e3f986e7",
+      "name": "Analyze document",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ySE4chOocTctZ7TZ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "review",
+        "owner": {
+          "__rl": true,
+          "value": "Camilin1904",
+          "mode": "list",
+          "cachedResultName": "Camilin1904",
+          "cachedResultUrl": "https://github.com/Camilin1904"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "PR_Agent_Repo",
+          "mode": "list",
+          "cachedResultName": "PR_Agent_Repo",
+          "cachedResultUrl": "https://github.com/Camilin1904/PR_Agent_Repo"
+        },
+        "pullRequestNumber": "={{ $('Github Trigger').item.json.body.number }}",
+        "event": "comment",
+        "body": "={{ $json.content.parts[0].text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        0
+      ],
+      "id": "db400c14-dc00-489e-8980-dae62ab46a53",
+      "name": "Create a review1",
+      "webhookId": "69560696-460c-4799-881e-06aa7e550e84",
+      "credentials": {
+        "githubApi": {
+          "id": "bVTtSc4JUuVN4d0s",
+          "name": "GitHub account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Github Trigger": {
+      "main": [
+        [
+          {
+            "node": "Analyze document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document": {
+      "main": [
+        [
+          {
+            "node": "Create a review1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4da4d989-d1e4-40ff-9304-05ec9bd58379",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "785355467f6f3376acd0cecca1352206c7b240891575a06bbcd00fa388c5f308"
+  },
+  "id": "OOtXoYtcGCJ4Bk1N",
+  "tags": []
+}
