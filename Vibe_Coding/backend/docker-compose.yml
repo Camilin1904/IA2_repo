@@ -1,0 +1,44 @@
+# Docker Compose para QuickTask API
+# Versión: 1.0.0
+
+version: '3.8'
+
+services:
+  # Servicio principal de la API
+  quicktask-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quicktask-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Montar código local para desarrollo (hot reload)
+      - .:/app
+      # Volumen persistente para la base de datos SQLite
+      - quicktask-data:/app/data
+    environment:
+      # Variables de entorno de la aplicación
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite:///./data/quicktask.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - quicktask-network
+
+# Volúmenes nombrados para persistencia
+volumes:
+  quicktask-data:
+    driver: local
+    name: quicktask-sqlite-data
+
+# Red personalizada
+networks:
+  quicktask-network:
+    driver: bridge
+    name: quicktask-network

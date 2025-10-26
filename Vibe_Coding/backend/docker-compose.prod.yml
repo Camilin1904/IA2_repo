@@ -1,0 +1,48 @@
+# Docker Compose para Producción
+# Versión optimizada sin montaje de código local
+
+version: '3.8'
+
+services:
+  quicktask-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: quicktask-api-prod
+    ports:
+      - "8000:8000"
+    volumes:
+      # Solo volumen de datos, NO código
+      - quicktask-data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite:///./data/quicktask.db
+      - ENV=production
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - quicktask-network
+    # Límites de recursos (opcional)
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  quicktask-data:
+    driver: local
+    name: quicktask-sqlite-data-prod
+
+networks:
+  quicktask-network:
+    driver: bridge
+    name: quicktask-network-prod

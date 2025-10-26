@@ -1,0 +1,59 @@
+# Dockerfile optimizado para producción
+# Imagen multi-stage para reducir el tamaño final
+
+FROM python:3.11-slim as builder
+
+# Variables de entorno para el builder
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# Instalar dependencias de compilación
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copiar y instalar dependencias
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# ==================== Stage 2: Runtime ====================
+FROM python:3.11-slim
+
+# Metadata
+LABEL maintainer="QuickTask Team"
+LABEL description="QuickTask API - Production Build"
+LABEL version="1.0.0"
+
+# Variables de entorno
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH=/root/.local/bin:$PATH
+
+# Crear usuario no-root para mayor seguridad
+RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app/data && \
+    chown -R appuser:appuser /app
+
+WORKDIR /app
+
+# Copiar dependencias instaladas del stage anterior
+COPY --from=builder /root/.local /root/.local
+
+# Copiar código de la aplicación
+COPY --chown=appuser:appuser . .
+
+# Cambiar a usuario no-root
+USER appuser
+
+# Exponer puerto
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
+# Comando por defecto
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

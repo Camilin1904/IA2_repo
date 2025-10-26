@@ -1,0 +1,68 @@
+# .dockerignore
+# Archivos y directorios a ignorar al construir la imagen Docker
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Tests
+test_*.py
+*_test.py
+tests/
+conftest.py
+
+# Logs
+*.log
+logs/
+
+# Datos locales
+quicktask.db
+data/
+*.sqlite
+*.sqlite3
+
+# Node (si aplica)
+node_modules/
+npm-debug.log
+
+# Otros
+.env
+.env.local
+tmp/
+temp/

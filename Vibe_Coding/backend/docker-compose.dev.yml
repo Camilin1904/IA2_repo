@@ -1,0 +1,40 @@
+# Docker Compose con Auto-reload para Desarrollo
+# Usa uvicorn con --reload para detectar cambios en el código
+
+version: '3.8'
+
+services:
+  quicktask-api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quicktask-api-dev
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      # Montar código para hot reload
+      - .:/app
+      # Excluir cache de Python
+      - /app/__pycache__
+      - /app/.pytest_cache
+      # Volumen para BD
+      - quicktask-dev-data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=sqlite:///./data/quicktask-dev.db
+      - ENV=development
+      - DEBUG=true
+    restart: unless-stopped
+    networks:
+      - quicktask-dev-network
+
+volumes:
+  quicktask-dev-data:
+    driver: local
+    name: quicktask-sqlite-data-dev
+
+networks:
+  quicktask-dev-network:
+    driver: bridge
+    name: quicktask-network-dev
